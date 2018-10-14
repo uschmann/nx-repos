@@ -4,20 +4,20 @@
 #include <stdio.h>
 #include <string.h>
 #include "account.h"
+#include <vector> 
 
 
 class AccountRepository
 {
     public:
         AccountRepository();
-        bool init();
-        void exit();
 
         s32 getNumberOfUsers();
+        Account getAccountByIndex(int index);
+        Account* getAccountById(u128 id);
     protected:
         s32 mNumberOfUsers;
-        u128* mUserIds;
-
-
-
+        std::vector<Account> mAccounts;
+        
+        bool init();
 };

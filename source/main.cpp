@@ -1,18 +1,42 @@
-#include <string.h>
+#include <switch.h>
 #include <stdio.h>
 
-#include <switch.h>
-
 #include "AccountRepository.h"
+#include "SaveDataRepository.h"
+#include "cJson.h"
+#include <vector>
 
 int main(int argc, char **argv)
 {
 	gfxInitDefault();
 	consoleInit(NULL);
 
-	AccountRepository* accountRepository = new AccountRepository();
-	accountRepository->init();
+	accountInitialize();
+	fsInitialize();
+	nsInitialize();
 
+	AccountRepository* accountRepository = new AccountRepository(); 
+	SaveDataRepository* saveDataRepository = new SaveDataRepository();
+
+	printf("Users: %d\n", accountRepository->getNumberOfUsers());
+
+	Account account = accountRepository->getAccountByIndex(0);
+	printf("%s\n", account.getUsername());
+
+	for(int i = 0; i < saveDataRepository->getNumberOfSavesByUserId(account.getUserId()); i++) {
+		std::vector<SaveData>* savData = saveDataRepository->getSavesByUserId(account.getUserId());
+		printf("\t%s - %s\n", savData->at(i).getName(), savData->at(i).getAuthor());
+
+
+		NsApplicationControlData* data = savData->at(i).getApplicationControlData();
+		char filename[500];
+		sprintf(filename, "%s.jpg", savData->at(i).getName());
+		FILE* f = fopen(filename, "wb");
+		fwrite(data->icon, savData->at(i).getImageSize(), 1, f);
+		fclose(f);
+	}
+
+	
 	// Main loop
 	while(appletMainLoop())
 	{
@@ -31,7 +55,12 @@ int main(int argc, char **argv)
 		gfxWaitForVsync();
 	}
 
-	accountRepository->exit();
+	delete accountRepository;
+	delete saveDataRepository;
+
+	accountExit();
+	fsExit();
+	nsExit();
 	gfxExit();
 	return 0;
 }

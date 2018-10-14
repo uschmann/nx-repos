@@ -2,39 +2,62 @@
 #include <cstring>
 #include <cstdlib>
 
-Account::Account(u128 userId)
+Account::Account(u128 userId, int index)
 {
     mUserId = userId;
-    
-    load();
-}
+    mIndex = index;
 
-void Account::load()
-{
+    AccountProfile profile;
+    AccountUserData userData;
+    AccountProfileBase profileBase;
     Result rc = 0;
-    
-    rc = accountGetProfile(&mProfile, mUserId);
+
+    rc = accountGetProfile(&profile, mUserId);
     if(R_FAILED(rc)) {
         printf("accountGetProfile failed: 0x%x\n", rc);
     }
 
-    rc = accountProfileGet(&mProfile, &mUserData, &mProfileBase);
+    rc = accountProfileGet(&profile, &userData, &profileBase);
     if(R_FAILED(rc)) {
         printf("accountProfileGet failed: 0x%x\n", rc);
     }
 
     memset(mUsername, 0, sizeof(mUsername));
-    strncpy(mUsername, mProfileBase.username, sizeof(mUsername)-1);
+    strncpy(mUsername, profileBase.username, sizeof(mUsername)-1);
 
-    rc = accountProfileGetImageSize(&mProfile, &mImageSize);
+    rc = accountProfileGetImageSize(&profile, &mImageSize);
     if(R_FAILED(rc)) {
         printf("accountProfileGetImageSize failed: 0x%x\n", rc);
     }
 
-    mImage = (u8*)malloc(mImageSize);
-    accountProfileLoadImage(&mProfile, &mImage, 1, &mImageSize);
+    accountProfileClose(&profile);
+}
 
-    accountProfileClose(&mProfile);
+Account::~Account()
+{
+
+}
+
+u8* Account::loadImage()
+{
+    AccountProfile profile;
+    Result rc = 0;
+
+    rc = accountGetProfile(&profile, mUserId);
+    if(R_FAILED(rc)) {
+        printf("accountGetProfile failed: 0x%x\n", rc);
+    }
+
+    u8 * image = new u8[mImageSize];
+    size_t actualImageSize;
+    rc = accountProfileLoadImage(&profile, image, mImageSize, &actualImageSize);
+    if(R_FAILED(rc)) {
+        printf("accountProfileLoadImage failed: 0x%x\n", rc);
+    }
+
+    accountProfileClose(&profile);
+
+    return image;
 }
 
 u128 Account::getUserId()
@@ -45,4 +68,18 @@ u128 Account::getUserId()
 char * Account::getUsername() 
 {
     return mUsername;
+}
+
+size_t Account::getImageSize()
+{
+    return mImageSize;
+}
+
+cJSON* Account::toJson()
+{
+    cJSON* json = cJSON_CreateObject();
+    cJSON_AddItemToObject(json, "index", cJSON_CreateNumber(mIndex));
+    cJSON_AddItemToObject(json, "name", cJSON_CreateString(mUsername));
+
+    return json;
 }

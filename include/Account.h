@@ -2,23 +2,23 @@
 
 #include <switch.h>
 #include <stdio.h>
+#include "cJson.h"
 
 class Account
 {
     public:
-        Account(u128 userId);
+        Account(u128 userId, int index);
+        ~Account();
 
         u128 getUserId();
         char * getUsername();
+        u8* loadImage();
+
+        size_t getImageSize();
+        cJSON* toJson();
     protected:
         u128 mUserId;
-        AccountProfile mProfile;
-        AccountUserData mUserData;
-        AccountProfileBase mProfileBase;
+        int mIndex;
         size_t mImageSize;
-        u8 * mImage;
-
         char mUsername[0x21];
-
-        void load();
 };
