@@ -34,7 +34,9 @@ void SaveDataRepository::init()
         return;
     }
 
+    int index = 0;
     while(1) {
+        index ++;
         res = fsSaveDataIteratorRead(&iterator, &info, 1, &total_entries);
 
         if (R_FAILED(res) || total_entries == 0)
@@ -56,7 +58,7 @@ void SaveDataRepository::init()
                 res = nacpGetLanguageEntry(&nsacd->nacp, &nle);
                 if (R_SUCCEEDED(res) && nle != NULL)
                 {
-                    SaveData saveData(uid, tid, nle->name, nle->author, outsize - sizeof(nsacd->nacp));
+                    SaveData saveData(index, uid, tid, nle->name, nle->author, outsize - sizeof(nsacd->nacp));
                     
                     if(mSavesData.find(uid) != mSavesData.end()) {
                         mSavesData.find(uid)->second.push_back(saveData);
@@ -92,4 +94,17 @@ size_t SaveDataRepository::getNumberOfSavesByUserId(u128 userId)
         return mSavesData.find(userId)->second.size(); 
     }
     return 0;
+}
+
+SaveData* SaveDataRepository::getSaveData(u128 userId, int index)
+{
+    if(mSavesData.find(userId) != mSavesData.end()) {
+        std::vector<SaveData> saves = mSavesData.find(userId)->second; 
+        for(int i = 0; i < saves.size(); i++) {
+            if(saves.at(i).getIndex() == index) {
+                return &saves.at(i);
+            }
+        }
+    }
+    return NULL;
 }

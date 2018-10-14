@@ -3,6 +3,7 @@
 
 #include "AccountRepository.h"
 #include "SaveDataRepository.h"
+#include "SettingsRepository.h"
 #include "cJson.h"
 #include <vector>
 
@@ -11,32 +12,22 @@ int main(int argc, char **argv)
 	gfxInitDefault();
 	consoleInit(NULL);
 
+	// Account
 	accountInitialize();
+	// SaveData
 	fsInitialize();
 	nsInitialize();
+	// Settings
+	setInitialize();
+	setsysInitialize();
 
 	AccountRepository* accountRepository = new AccountRepository(); 
 	SaveDataRepository* saveDataRepository = new SaveDataRepository();
-
-	printf("Users: %d\n", accountRepository->getNumberOfUsers());
+	SettingsRepository* settingsRepository = new SettingsRepository();
 
 	Account account = accountRepository->getAccountByIndex(0);
-	printf("%s\n", account.getUsername());
+	SaveData* save = saveDataRepository->getSaveData(account.getUserId(), 1);
 
-	for(int i = 0; i < saveDataRepository->getNumberOfSavesByUserId(account.getUserId()); i++) {
-		std::vector<SaveData>* savData = saveDataRepository->getSavesByUserId(account.getUserId());
-		printf("\t%s - %s\n", savData->at(i).getName(), savData->at(i).getAuthor());
-
-
-		NsApplicationControlData* data = savData->at(i).getApplicationControlData();
-		char filename[500];
-		sprintf(filename, "%s.jpg", savData->at(i).getName());
-		FILE* f = fopen(filename, "wb");
-		fwrite(data->icon, savData->at(i).getImageSize(), 1, f);
-		fclose(f);
-	}
-
-	
 	// Main loop
 	while(appletMainLoop())
 	{
@@ -57,10 +48,13 @@ int main(int argc, char **argv)
 
 	delete accountRepository;
 	delete saveDataRepository;
+	delete settingsRepository;
 
 	accountExit();
 	fsExit();
 	nsExit();
+	setExit();
+	setsysExit();
 	gfxExit();
 	return 0;
 }

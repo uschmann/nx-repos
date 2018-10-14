@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-SaveData::SaveData(u128 userId, u64 titleId, char* name, char* author, size_t iconSize)
+SaveData::SaveData(int index, u128 userId, u64 titleId, char* name, char* author, size_t iconSize)
 {
+    mIndex = index;
     mUserId = userId;
     mTitleId = titleId;
     mIconSize = iconSize;
@@ -21,6 +22,11 @@ char* SaveData::getName()
 char* SaveData::getAuthor()
 {
     return mAuthor;
+}
+
+int SaveData::getIndex()
+{
+    return mIndex;
 }
 
 NsApplicationControlData* SaveData::getApplicationControlData()
@@ -42,4 +48,13 @@ NsApplicationControlData* SaveData::getApplicationControlData()
 size_t SaveData::getImageSize()
 {
     return mIconSize;
+}
+
+cJSON* SaveData::toJson()
+{
+    cJSON* json = cJSON_CreateObject();
+    cJSON_AddItemToObject(json, "index", cJSON_CreateNumber(mIndex));
+    cJSON_AddItemToObject(json, "name", cJSON_CreateString(mName));
+    cJSON_AddItemToObject(json, "author", cJSON_CreateString(mAuthor));
+    return json;
 }
